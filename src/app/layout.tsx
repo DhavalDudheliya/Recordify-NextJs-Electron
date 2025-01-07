@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Manrope } from "next/font/google";
 import { ThemeProvider } from "@/components/theme/theme-provider";
+import ReactQueryProvider from "@/react-query";
 
 const manrope = Manrope({ subsets: ["latin"] });
 
@@ -18,10 +19,10 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <html lang="en" suppressHydrationWarning>
-        <body className={`${manrope.className} bg-[#171717]`}>
+      <html lang="en" suppressHydrationWarning >
+        <body suppressHydrationWarning className={`${manrope.className} bg-[#171717]`}>
           <ThemeProvider attribute={"class"} defaultTheme="dark" disableTransitionOnChange>
-            {children}
+            <ReactQueryProvider>{children}</ReactQueryProvider>
           </ThemeProvider>
         </body>
       </html>
