@@ -7,10 +7,10 @@ export const onAuthenticateUser = async () => {
   try {
     const user = await currentUser();
     if (!user) {
-      return { status: 403, message: "Unauthorized" };
+      return { status: 403 };
     }
 
-    const userExists = await client.user.findUnique({
+    const userExist = await client.user.findUnique({
       where: {
         clerkId: user.id,
       },
@@ -25,8 +25,8 @@ export const onAuthenticateUser = async () => {
       },
     });
 
-    if (userExists) {
-      return { status: 200, message: "User authenticated successfully", user: userExists };
+    if (userExist) {
+      return { status: 200, user: userExist };
     }
 
     const newUser = await client.user.create({
@@ -50,7 +50,13 @@ export const onAuthenticateUser = async () => {
         },
       },
       include: {
-        workspace: true,
+        workspace: {
+          where: {
+            User: {
+              clerkId: user.id,
+            },
+          },
+        },
         subscription: {
           select: {
             plan: true,
@@ -58,15 +64,13 @@ export const onAuthenticateUser = async () => {
         },
       },
     });
-
     if (newUser) {
-      return { status: 200, message: "User authenticated successfully", user: newUser };
+      return { status: 201, user: newUser };
     }
-
-    return { status: 400, message: "User not authenticated" };
+    return { status: 400 };
   } catch (error) {
-    console.log(error);
-    return { status: 500, message: "Internal Server Error" };
+    console.log("🔴 ERROR", error);
+    return { status: 500 };
   }
 };
 

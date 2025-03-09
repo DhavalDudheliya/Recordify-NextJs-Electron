@@ -6,31 +6,31 @@ import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query
 import Sidebar from "@/components/global/sidebar";
 
 type Props = {
-  params: {
-    workspaceId: string;
-  };
+  params: Promise<{ workspaceId: string }>;
   children: React.ReactNode;
 };
 
-const Layout = async ({ params: { workspaceId }, children }: Props) => {
-  const auth = await onAuthenticateUser();
+const Layout = async ({ params, children }: Props) => {
+  // Ensure params is awaited before accessing workspaceId
+  const { workspaceId } = await params;
 
-  if (!auth.user?.workspace || !auth.user?.workspace.length) {
+  if (!workspaceId) {
     redirect("/auth/sign-in");
   }
-  if (!auth.user.workspace.length) {
+
+  const auth = await onAuthenticateUser();
+
+  if (!auth.user?.workspace?.length) {
     redirect("/auth/sign-in");
   }
 
   const hasAccess = await verifyAccessToWorkspace(workspaceId);
 
-  if (hasAccess.status === 200) {
+  if (hasAccess.status !== 200) {
     redirect(`/dashboard/${auth.user?.workspace[0].id}`);
   }
 
-  if (!hasAccess.data?.workspace) {
-    return null;
-  }
+  if (!hasAccess.data?.workspace) return null;
 
   const query = new QueryClient();
 
@@ -58,6 +58,7 @@ const Layout = async ({ params: { workspaceId }, children }: Props) => {
     <HydrationBoundary state={dehydrate(query)}>
       <div className="flex w-screen h-screen">
         <Sidebar activeWorkspaceId={workspaceId} />
+        <div className="flex-1">{children}</div>
       </div>
     </HydrationBoundary>
   );
